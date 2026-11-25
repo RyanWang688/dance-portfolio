@@ -1,0 +1,702 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D.A.N.C.E. Case Study</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Yue Wang — UX/UI case study: D.A.N.C.E., an AI motion-capture dance coaching app.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a case study read like a choreography sequence list — each section is a timecoded "sequence" on a left rail; phones are the stage. */
+:root {
+  --paper: #EFF1F4;
+  --surface: #FFFFFF;
+  --ink: #14151B;
+  --muted: #5B6070;
+  --line: #D6DAE2;
+  --blue: #1E9BE0;      /* Dance Ghost: "previous you" */
+  --coral: #E8504F;     /* Dance Ghost: "standard" + correction ring */
+  --lilac: #9C7CF4;     /* the app's secondary action colour */
+  --bezel: #1B1C22;
+  --chip: #E3E7EE;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1015; --surface: #181A21; --ink: #ECEEF4; --muted: #9CA2B1; --line: #2A2D38;
+    --blue: #4DB8F2; --coral: #FF6F6C; --lilac: #B39BFF; --bezel: #000000; --chip: #23262F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1015; --surface: #181A21; --ink: #ECEEF4; --muted: #9CA2B1; --line: #2A2D38;
+  --blue: #4DB8F2; --coral: #FF6F6C; --lilac: #B39BFF; --bezel: #000000; --chip: #23262F;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.wrap {
+  max-width: 1160px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (min-width: 720px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.08; }
+p { margin: 0; }
+.mono { font-family: var(--mono); font-size: 12.5px; letter-spacing: .04em; }
+.label { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- top bar ---------- */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
+.who { font-weight: 600; font-size: 15px; white-space: nowrap; }
+.who span { color: var(--muted); font-weight: 400; }
+.nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.nav::-webkit-scrollbar { display: none; }
+.nav a { text-decoration: none; font-size: 14px; color: var(--muted); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+.nav a:hover { color: var(--ink); background: var(--chip); }
+@media (max-width: 760px) { .nav { display: none; } }
+
+/* ---------- hero ---------- */
+.hero { padding-block: 56px 72px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 40px; } }
+.kicker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.tag { font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--chip); color: var(--ink); }
+.ghosted { position: relative; font-style: italic; font-weight: 900; font-stretch: 118%; font-size: clamp(52px, 9.5vw, 112px); letter-spacing: -.01em; line-height: .95; }
+.ghosted .g { position: absolute; inset: 0; pointer-events: none; }
+.ghosted .g1 { color: transparent; -webkit-text-stroke: 1.5px var(--coral); transform: translate(-7px, 5px); }
+.ghosted .g2 { color: transparent; -webkit-text-stroke: 1.5px var(--blue); transform: translate(7px, -5px); }
+.ghosted .solid { position: relative; }
+@media (prefers-reduced-motion: no-preference) {
+  .ghosted .g1 { animation: drift1 4.8s ease-in-out infinite alternate; }
+  .ghosted .g2 { animation: drift2 4.8s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform: translate(-2px, 1px); } }
+  @keyframes drift2 { to { transform: translate(2px, -1px); } }
+}
+.expand { margin-top: 16px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.expand b { color: var(--ink); font-weight: 500; }
+.lede { margin-top: 22px; font-size: clamp(19px, 2.1vw, 22px); line-height: 1.5; max-width: 34ch; }
+.meta { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; max-width: 520px; }
+.meta dt { margin-bottom: 2px; }
+.meta dd { margin: 0; font-size: 15px; }
+.stage { position: relative; display: flex; justify-content: center; align-items: flex-end; gap: 0; min-height: 0; }
+.stage .phone { width: min(36%, 210px); }
+.stage .phone:nth-child(1) { transform: translate(18%, 24px) rotate(-5deg); }
+.stage .phone:nth-child(2) { z-index: 2; width: min(40%, 232px); }
+.stage .phone:nth-child(3) { transform: translate(-18%, 24px) rotate(5deg); }
+
+/* ---------- phone frame ---------- */
+.phone { position: relative; border-radius: 30px; padding: 6px; background: var(--bezel); box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 24px 48px -24px rgba(10,14,30,.45); max-width: 100%; }
+.phone img { display: block; width: 100%; aspect-ratio: 430 / 932; object-fit: cover; object-position: top; border-radius: 24px; background: #fff; }
+.tv { border-radius: 14px; padding: 6px; background: var(--bezel); box-shadow: 0 24px 48px -24px rgba(10,14,30,.45); }
+.tv img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 9px; }
+
+/* ---------- sections ---------- */
+section.seq { border-top: 1px solid var(--line); padding-block: 72px; }
+.seq-head { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 24px; align-items: baseline; margin-bottom: 40px; }
+@media (max-width: 720px) { .seq-head { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+.tc { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; color: var(--lilac); }
+.tc::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--lilac); }
+.seq-head h2 { font-size: clamp(32px, 4.6vw, 52px); font-weight: 800; font-stretch: 108%; letter-spacing: -.01em; }
+.seq-head .sub { margin-top: 14px; color: var(--muted); max-width: 62ch; font-size: 18px; }
+.body { margin-left: 144px; }
+@media (max-width: 720px) { .body { margin-left: 0; } }
+.prose { max-width: 66ch; display: grid; gap: 16px; }
+.prose strong { font-weight: 600; }
+
+/* overview */
+.tldr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.tldr > div { background: var(--surface); padding: 22px; display: grid; gap: 8px; align-content: start; }
+.tldr h3 { font-size: 18px; font-weight: 700; font-stretch: 100%; }
+.tldr p { font-size: 15.5px; color: var(--muted); }
+@media (max-width: 900px) { .tldr { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tldr { grid-template-columns: minmax(0, 1fr); } }
+.facts { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 28px; }
+.facts div { display: flex; align-items: baseline; gap: 8px; }
+.facts b { font-family: var(--display); font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.facts span { color: var(--muted); font-size: 15px; }
+
+/* quotes */
+blockquote { margin: 0; padding: 20px 22px; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); }
+blockquote p { font-size: 17.5px; line-height: 1.5; }
+blockquote footer { margin-top: 10px; }
+.quote-big { font-family: var(--display); font-style: italic; font-weight: 700; font-stretch: 104%; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.25; max-width: 30ch; }
+
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+
+/* research */
+.figure { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px; overflow-x: auto; }
+.figure img { display: block; width: 100%; min-width: 640px; max-width: none; height: auto; }
+figcaption { margin-top: 10px; }
+.stake { margin-top: 32px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+.stake article { grid-column: span 2; }
+.stake article:nth-child(-n+2) { grid-column: span 3; }
+@media (max-width: 860px) { .stake { grid-template-columns: minmax(0, 1fr); } .stake article, .stake article:nth-child(-n+2) { grid-column: auto; } }
+.stake article { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.stake h3 { font-size: 16.5px; font-weight: 700; font-stretch: 100%; }
+.stake .role { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.stake .role.primary { color: var(--blue); }
+.stake .role.secondary { color: var(--muted); }
+.stake p { font-size: 15px; color: var(--muted); }
+.stake .want { color: var(--ink); }
+.tension { margin-top: 28px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; padding: 20px 22px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+.tension .poles { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+.tension .poles i { width: 34px; height: 2px; background: linear-gradient(90deg, var(--blue), var(--coral)); display: inline-block; }
+@media (max-width: 600px) { .tension { grid-template-columns: minmax(0, 1fr); } }
+
+/* principles */
+.principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.principles article { padding: 22px 22px 22px 0; border-bottom: 1px solid var(--line); display: grid; gap: 8px; align-content: start; }
+.principles h3 { font-size: 20px; font-weight: 700; font-stretch: 104%; }
+.principles p { color: var(--muted); font-size: 15.5px; }
+
+/* tabs (shared) */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+.tabs button { font: 500 14px/1 var(--body); padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.tabs button:hover { border-color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* before / after */
+.ba { display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 210px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.ba .col { display: grid; gap: 12px; justify-items: start; }
+.ba .col .phone { width: 100%; }
+.ba .wf .phone { background: #B9BDC7; }
+.ba .changes { display: grid; gap: 14px; align-content: start; }
+.ba .changes h3 { font-size: 24px; font-weight: 800; font-stretch: 106%; }
+.ba ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.ba li { position: relative; padding-left: 28px; font-size: 16px; }
+.ba li::before { content: "→"; position: absolute; left: 0; top: 0; color: var(--coral); font-weight: 700; }
+@media (max-width: 860px) { .ba { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .ba .changes { grid-column: 1 / -1; } }
+
+/* flows */
+.strip { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 18px; scroll-snap-type: x proximity; }
+.strip figure { margin: 0; flex: 0 0 176px; scroll-snap-align: start; display: grid; gap: 10px; align-content: start; }
+.strip figcaption { margin: 0; font-size: 14px; line-height: 1.4; }
+.strip figcaption .mono { display: block; color: var(--lilac); margin-bottom: 2px; }
+.flow-note { margin-bottom: 20px; max-width: 66ch; color: var(--muted); }
+
+/* ghost */
+.ghost { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 48px; align-items: center; margin-top: 64px; padding: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+.ghost .phone { width: 100%; }
+.ghost h3 { font-size: clamp(26px, 3.2vw, 36px); font-weight: 900; font-style: italic; font-stretch: 112%; }
+.ghost .seg { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 22px; }
+.ghost .seg button { font: 500 14px/1 var(--body); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.ghost .seg button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink) inset; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dot.c { background: var(--coral); } .dot.b { background: var(--blue); } .dot.n { background: var(--muted); }
+.dot.cb { background: linear-gradient(90deg, var(--coral) 50%, var(--blue) 50%); }
+.ghost .state { min-height: 3.2em; color: var(--muted); }
+@media (max-width: 760px) { .ghost { grid-template-columns: minmax(0, 1fr); padding: 20px; gap: 24px; } .ghost .phone { max-width: 260px; margin: 0 auto; } }
+
+.tvrow { margin-top: 48px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .9fr); gap: 20px; align-items: center; }
+@media (max-width: 860px) { .tvrow { grid-template-columns: minmax(0, 1fr); } }
+
+/* testing */
+.verdicts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 860px) { .verdicts { grid-template-columns: minmax(0, 1fr); } }
+.verdict { display: grid; gap: 14px; align-content: start; }
+.verdict h3 { font-size: 22px; font-weight: 800; font-stretch: 104%; display: flex; align-items: center; gap: 10px; }
+.verdict .item { padding: 18px 20px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 8px; }
+.verdict .item h4 { margin: 0; font-size: 16.5px; }
+.verdict .item p { font-size: 15.5px; color: var(--muted); }
+.verdict .item q { display: block; font-style: italic; color: var(--ink); font-size: 15.5px; }
+.method { margin-bottom: 36px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* iteration */
+.mine { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 12px; letter-spacing: .06em; margin-bottom: 18px; }
+.iter { display: grid; grid-template-columns: repeat(3, minmax(0, 220px)) minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 36px; }
+.iter figure { margin: 0; display: grid; gap: 10px; }
+.iter .phone img { object-position: top; }
+.iter .shot { border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.iter .shot img { display: block; width: 100%; aspect-ratio: 9 / 19.3; object-fit: cover; object-position: top; }
+.iter .why { display: grid; gap: 14px; align-content: start; }
+.iter .why h3 { font-size: 20px; font-weight: 700; font-stretch: 104%; }
+.iter .why p { font-size: 15.5px; color: var(--muted); }
+@media (max-width: 1000px) { .iter { grid-template-columns: repeat(3, minmax(0, 1fr)); } .iter .why { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .iter { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* reflection */
+.learned { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+@media (max-width: 860px) { .learned { grid-template-columns: minmax(0, 1fr); } }
+.learned article { display: grid; gap: 10px; align-content: start; padding-top: 18px; border-top: 2px solid var(--ink); }
+.learned h3 { font-size: 19px; font-weight: 700; font-stretch: 104%; }
+.learned p { color: var(--muted); font-size: 15.5px; }
+.next { margin-top: 48px; padding: 24px; border-radius: 16px; border: 1px dashed var(--muted); display: grid; gap: 14px; }
+.next ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.next li { font-size: 16px; }
+.refs { margin-top: 48px; display: grid; gap: 6px; font-size: 13.5px; color: var(--muted); max-width: 90ch; }
+
+footer.end { border-top: 1px solid var(--line); padding-block: 56px 72px; }
+footer.end .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; align-items: end; }
+footer.end h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 900; font-style: italic; font-stretch: 115%; }
+footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
+.toTop { text-decoration: none; font-family: var(--mono); font-size: 13px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+</style>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="who">Yue Wang <span>· UX / Product Design</span></div>
+    <nav class="nav" aria-label="Case study sections">
+      <a href="#overview">Overview</a>
+      <a href="#research">Research</a>
+      <a href="#iteration">Wireframe → Final</a>
+      <a href="#experience">Experience</a>
+      <a href="#testing">Testing</a>
+      <a href="#next">My iteration</a>
+      <a href="#reflection">Reflection</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="kicker">
+          <span class="tag">Mobile app · iOS</span>
+          <span class="tag">AI motion capture</span>
+          <span class="tag">0 → 1 concept</span>
+        </div>
+        <h1 class="ghosted" aria-label="D.A.N.C.E.">
+          <span class="g g1" aria-hidden="true">D.A.N.C.E.</span>
+          <span class="g g2" aria-hidden="true">D.A.N.C.E.</span>
+          <span class="solid">D.A.N.C.E.</span>
+        </h1>
+        <p class="expand"><b>D</b>ance · <b>A</b>nd · <b>N</b>uanced · <b>C</b>oaching · <b>E</b>xpert</p>
+        <p class="lede">A dance coach in your pocket. It breaks any choreography into short sequences, watches you through the camera, and corrects your form in real time.</p>
+        <dl class="meta">
+          <div><dt class="label">Role</dt><dd>UX/UI designer: research, wireframes, hi-fi prototype, user testing</dd></div>
+          <div><dt class="label">Context</dt><dd>Team project · INFO30008 Interactive Technology Project, University of Melbourne</dd></div>
+          <div><dt class="label">Timeline</dt><dd>Semester 2, 2024 (Aug – Nov)</dd></div>
+          <div><dt class="label">Tools</dt><dd>Figma (prototype), interviews, rich picture, usability testing</dd></div>
+        </dl>
+      </div>
+      <div class="stage" aria-label="Three key screens from the final prototype">
+        <div class="phone"><img src="assets/home.webp" alt="Home screen: Let's Dance, dance styles carousel, continue last dance, practice history and 40-day streak" loading="eager"></div>
+        <div class="phone"><img src="assets/feedback.webp" alt="Learning screen with real-time feedback: correction tip, red ring on the wrong joint, 86% accuracy" loading="eager"></div>
+        <div class="phone"><img src="assets/ghost-both.webp" alt="Analysis screen with Dance Ghost overlays: the standard pose in coral and the user's previous attempt in blue" loading="eager"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 0:00 OVERVIEW -->
+  <section class="seq" id="overview">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">0:00</span>
+        <div>
+          <h2>Overview</h2>
+          <p class="sub">Most people who want to dance learn alone from videos. Nobody tells them when their form is off, and bad form leads to injuries.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="tldr">
+          <div><span class="label">Problem</span><h3>Self-learners get no feedback</h3><p>Online tutorials can't see you. Offline classes run at a fixed pace, time and place, and can't teach each student at their own level.</p></div>
+          <div><span class="label">Solution</span><h3>Learn, practise, get corrected</h3><p>Choreography is split into sequences you learn at 0.5×, then 1.0×. Motion capture flags the exact joint that's off while you dance.</p></div>
+          <div><span class="label">Signature feature</span><h3>Dance Ghost</h3><p>After practice, your body is overlaid with the standard pose and your previous attempt, so you can see what to fix without being interrupted mid-routine.</p></div>
+          <div><span class="label">Outcome</span><h3>Easy to use, clear next step</h3><p>In prototype testing, every interviewee found the app easy to understand. Their feedback led to an Offline Dance map and AI studio suggestions, which I designed in the next iteration.</p></div>
+        </div>
+        <div class="facts" aria-label="Project in numbers">
+          <div><b>40</b><span>hi-fi screens</span></div>
+          <div><b>9</b><span>wireframes</span></div>
+          <div><b>5</b><span>stakeholder groups mapped</span></div>
+          <div><b>3</b><span>core flows: learn, practise, upload</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 0:20 RESEARCH -->
+  <section class="seq" id="research">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">0:20</span>
+        <div>
+          <h2>Who has a stake in learning to dance?</h2>
+          <p class="sub">We started with interviews and a rich picture of everyone touched by dance teaching, not only the learner. The map showed where needs agree and where they conflict.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="two">
+          <div class="prose">
+            <p>Our early research found that <strong>unsupervised practice raises injury risk</strong> (Bhutada &amp; Pawar, 2022). Interviewees also kept coming back to one complaint: <strong>offline classes can't teach each student at their own level</strong>.</p>
+            <p>A professional dancer described the problem with existing tools more precisely. Stopping to check a video breaks the flow of practice:</p>
+          </div>
+          <blockquote>
+            <p class="quote-big">“I don't want to be interrupted when practising; I need better consistency.”</p>
+            <footer class="label">Professional dancer · initial interview</footer>
+          </blockquote>
+        </div>
+
+        <figure style="margin: 40px 0 0;">
+          <div class="figure"><img src="assets/rich-picture.webp" alt="Rich picture mapping five stakeholder groups around technology that increases the effectiveness of dance lessons, with conflicts in red and agreeable comments in green" loading="lazy"></div>
+          <figcaption class="label">Rich picture · red lines are conflicts, green lines are agreements · scroll sideways on mobile</figcaption>
+        </figure>
+
+        <div class="stake">
+          <article><span class="role primary">Primary user</span><h3>People learning to dance</h3><p class="want">“I want a flexible schedule.”</p><p>Need structure and motivation, and doubt that online learning works.</p></article>
+          <article><span class="role primary">Primary user</span><h3>Professional dancers</h3><p class="want">“I like to practise alone and review movements.”</p><p>Need precise, uninterrupted self-correction before performances.</p></article>
+          <article><span class="role secondary">Secondary</span><h3>Dance teachers</h3><p class="want">“Can I get a record of my students' practice?”</p><p>Want reach and progress tracking, and worry the app will replace face-to-face lessons.</p></article>
+          <article><span class="role secondary">Secondary</span><h3>Parents of young dancers</h3><p class="want">“I want my kids to interact with other students.”</p><p>Accept technology only alongside in-person classes.</p></article>
+          <article><span class="role secondary">Secondary</span><h3>Content creators</h3><p class="want">“Will this new tech replace my job?”</p><p>See a new channel for views, and a new competitor.</p></article>
+        </div>
+
+        <div class="tension">
+          <div class="poles"><span>efficiency &amp; flexibility</span><i aria-hidden="true"></i><span>social &amp; emotional value</span></div>
+          <p>The core tension: technology makes practice personal and flexible, but teachers and parents value the teamwork and human connection of a studio. The product had to <strong>complement offline teaching, not replace it</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 0:45 PRINCIPLES -->
+  <section class="seq" id="principles">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">0:45</span>
+        <div>
+          <h2>Design principles</h2>
+          <p class="sub">Four rules guided every screen. Two come from Nielsen's usability heuristics. The other two come from how dance is actually taught in a studio.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="principles">
+          <article><span class="label">Nielsen · consistency</span><h3>Look like apps people know</h3><p>Same bottom navigation, button styles and result layout on every screen, so learning the app never competes with learning the dance.</p></article>
+          <article><span class="label">Nielsen · minimalism</span><h3>One task per screen</h3><p>The sequence list shows only the step, its duration and progress (1/5). Everything else stays out of the way.</p></article>
+          <article><span class="label">Studio teaching</span><h3>Break it down, then speed it up</h3><p>Teachers split routines into counts and slow them down. The app does the same: short sequences at 0.5×, then a “Last Try” at 1.0×.</p></article>
+          <article><span class="label">From interviews</span><h3>Correct without interrupting</h3><p>Live corrections appear as a small tip and a ring on the joint. Detailed analysis waits until after the routine, in Dance Ghost.</p></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1:10 WIREFRAME → FINAL -->
+  <section class="seq" id="iteration">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">1:10</span>
+        <div>
+          <h2>From wireframe to final</h2>
+          <p class="sub">The mid-fidelity wireframes tested the flow. The final iteration made the feedback visual and cut the text, so the user's attention stays on their body.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="tabs" role="tablist" aria-label="Wireframe and final comparisons" data-tabs="ba">
+          <button role="tab" id="ba-t1" aria-selected="true" aria-controls="ba-p1">Step analysis</button>
+          <button role="tab" id="ba-t2" aria-selected="false" aria-controls="ba-p2" tabindex="-1">Step tutorial</button>
+          <button role="tab" id="ba-t3" aria-selected="false" aria-controls="ba-p3" tabindex="-1">Practice result</button>
+          <button role="tab" id="ba-t4" aria-selected="false" aria-controls="ba-p4" tabindex="-1">Dance detail</button>
+        </div>
+
+        <div class="ba" role="tabpanel" id="ba-p1" aria-labelledby="ba-t1">
+          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-step-result.webp" alt="Wireframe: step result with a single red line marking the wrong joint" loading="lazy"></div></div>
+          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/ghost-both.webp" alt="Final: analysis with standard and previous body overlays and a correction message" loading="lazy"></div></div>
+          <div class="changes">
+            <h3>A red line became a ghost</h3>
+            <ul>
+              <li>The wireframe marked one joint with a line. It showed <em>where</em> the mistake was, but not <em>how</em> to fix it.</li>
+              <li>The final overlays two bodies: the standard pose (coral) and your previous attempt (blue). This is Dance Ghost.</li>
+              <li>The correction is written out in plain words (“Raise your right hand a bit higher…”), anchored to the joint.</li>
+              <li>A timeline with red error markers lets the user jump straight to each mistake.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ba" role="tabpanel" id="ba-p2" aria-labelledby="ba-t2" hidden>
+          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-step-trial.webp" alt="Wireframe: step trial with text tips overlaid on a photo" loading="lazy"></div></div>
+          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/step-tips.webp" alt="Final: Nataraja Pose step with Overview and Tips tabs and a Start Learn button" loading="lazy"></div></div>
+          <div class="changes">
+            <h3>Tips moved off the dancer</h3>
+            <ul>
+              <li>Text bubbles on the photo hid the pose they were describing.</li>
+              <li>The final gives the pose a clean stage, with Overview (cultural meaning) and Tips (body instructions) in tabs below.</li>
+              <li>A single <em>Start Learn</em> button replaces the hamburger menu and four-tab bar, so the next action is obvious.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ba" role="tabpanel" id="ba-p3" aria-labelledby="ba-t3" hidden>
+          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-result.webp" alt="Wireframe: result page with 83% score, badges and part-by-part analysis" loading="lazy"></div></div>
+          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/practice-result.webp" alt="Final: practice result with 83% score, two badges, a video replay and Continue to Analysis" loading="lazy"></div></div>
+          <div class="changes">
+            <h3>Celebrate first, analyse second</h3>
+            <ul>
+              <li>The wireframe put the score and the part-by-part breakdown on one screen.</li>
+              <li>The final keeps the moment simple: score, comparison with last time, and two badges.</li>
+              <li>The detail sits one tap away behind <em>Continue to Analysis</em>, with <em>Restart</em> as the secondary action.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="ba" role="tabpanel" id="ba-p4" aria-labelledby="ba-t4" hidden>
+          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-next-step.webp" alt="Wireframe: dance page with hashtags and separate Learn and Practice buttons" loading="lazy"></div></div>
+          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/tutorial.webp" alt="Final: Bharatanatyam detail with rating, learners, duration, difficulty and View Choreography" loading="lazy"></div></div>
+          <div class="changes">
+            <h3>Answer “is this for me?” first</h3>
+            <ul>
+              <li>Hashtags described the dance but didn't answer the learner's real question: is this my level?</li>
+              <li>The final shows rating, how many people are learning it, total duration and a difficulty scale before anything else.</li>
+              <li>Learn and Practice moved down to the sequence list, where the choice actually matters.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1:35 EXPERIENCE -->
+  <section class="seq" id="experience">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">1:35</span>
+        <div>
+          <h2>The core experience</h2>
+          <p class="sub">Three flows cover the product: learn a dance from the library, practise it with feedback, or upload any video and learn that.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="tabs" role="tablist" aria-label="User flows" data-tabs="flow">
+          <button role="tab" id="fl-t1" aria-selected="true" aria-controls="fl-p1">Learn</button>
+          <button role="tab" id="fl-t2" aria-selected="false" aria-controls="fl-p2" tabindex="-1">Practise</button>
+          <button role="tab" id="fl-t3" aria-selected="false" aria-controls="fl-p3" tabindex="-1">Upload any dance</button>
+          <button role="tab" id="fl-t4" aria-selected="false" aria-controls="fl-p4" tabindex="-1">Onboarding</button>
+        </div>
+
+        <div role="tabpanel" id="fl-p1" aria-labelledby="fl-t1">
+          <p class="flow-note">Modelled on a studio lesson: understand the pose, break the routine into sequences, learn each one slowly, then put it together at full speed.</p>
+          <div class="strip">
+            <figure><div class="phone"><img src="assets/tutorial.webp" alt="Dance detail page" loading="lazy"></div><figcaption><span class="mono">01</span>Pick a dance, see difficulty and duration</figcaption></figure>
+            <figure><div class="phone"><img src="assets/step-overview.webp" alt="Step overview with cultural background" loading="lazy"></div><figcaption><span class="mono">02</span>Understand the pose and its meaning</figcaption></figure>
+            <figure><div class="phone"><img src="assets/sequence-hiphop.webp" alt="Sequence list with five timed sequences" loading="lazy"></div><figcaption><span class="mono">03</span>Routine split into timed sequences</figcaption></figure>
+            <figure><div class="phone"><img src="assets/learn-slow.webp" alt="Learn screen at 0.5x speed" loading="lazy"></div><figcaption><span class="mono">04</span>Learn each sequence at 0.5×</figcaption></figure>
+            <figure><div class="phone"><img src="assets/try-again.webp" alt="Try Again prompt" loading="lazy"></div><figcaption><span class="mono">05</span>Repeat until it sticks</figcaption></figure>
+            <figure><div class="phone"><img src="assets/last-try.webp" alt="Last Try at 1.0x speed" loading="lazy"></div><figcaption><span class="mono">06</span>Last Try at full speed</figcaption></figure>
+            <figure><div class="phone"><img src="assets/feedback.webp" alt="Real-time feedback screen" loading="lazy"></div><figcaption><span class="mono">07</span>Live correction on the exact joint</figcaption></figure>
+            <figure><div class="phone"><img src="assets/learn-result.webp" alt="Learning result summary" loading="lazy"></div><figcaption><span class="mono">08</span>Summary: accuracy per sequence</figcaption></figure>
+          </div>
+        </div>
+        <div role="tabpanel" id="fl-p2" aria-labelledby="fl-t2" hidden>
+          <p class="flow-note">Practice runs the routine without stopping. A small reference video sits in the corner, and all analysis waits until the end.</p>
+          <div class="strip">
+            <figure><div class="phone"><img src="assets/practice.webp" alt="Practice screen with reference video" loading="lazy"></div><figcaption><span class="mono">01</span>Dance with a reference in the corner</figcaption></figure>
+            <figure><div class="phone"><img src="assets/practice-3.webp" alt="Practice at step 3 of 5" loading="lazy"></div><figcaption><span class="mono">02</span>Progress shown as 3/5, nothing else</figcaption></figure>
+            <figure><div class="phone"><img src="assets/exit-confirm.webp" alt="Exit confirmation dialog" loading="lazy"></div><figcaption><span class="mono">03</span>Confirm before losing a session</figcaption></figure>
+            <figure><div class="phone"><img src="assets/practice-result.webp" alt="Practice result" loading="lazy"></div><figcaption><span class="mono">04</span>Score and badges</figcaption></figure>
+            <figure><div class="phone"><img src="assets/ghost-both.webp" alt="Dance Ghost analysis" loading="lazy"></div><figcaption><span class="mono">05</span>Dance Ghost analysis</figcaption></figure>
+          </div>
+        </div>
+        <div role="tabpanel" id="fl-p3" aria-labelledby="fl-t3" hidden>
+          <p class="flow-note">Users aren't limited to our library. Paste a link or pick a video, and the app breaks it into sequences, which turns any creator's content into a lesson.</p>
+          <div class="strip">
+            <figure><div class="phone"><img src="assets/upload-pick.webp" alt="Upload page with video picker" loading="lazy"></div><figcaption><span class="mono">01</span>Pick a video or paste a link</figcaption></figure>
+            <figure><div class="phone"><img src="assets/uploading.webp" alt="Uploading progress" loading="lazy"></div><figcaption><span class="mono">02</span>Upload with clear progress</figcaption></figure>
+            <figure><div class="phone"><img src="assets/upload-done.webp" alt="Upload done" loading="lazy"></div><figcaption><span class="mono">03</span>Done, ready to break down</figcaption></figure>
+            <figure><div class="phone"><img src="assets/sequence-bharat.webp" alt="Sequence list for Bharatanatyam with seven steps" loading="lazy"></div><figcaption><span class="mono">04</span>Auto-split into named steps</figcaption></figure>
+          </div>
+        </div>
+        <div role="tabpanel" id="fl-p4" aria-labelledby="fl-t4" hidden>
+          <p class="flow-note">Sign-up asks two questions that shape coaching from day one: dance level, and any previous injuries.</p>
+          <div class="strip">
+            <figure><div class="phone"><img src="assets/landing.webp" alt="Landing screen with D.A.N.C.E. logo" loading="lazy"></div><figcaption><span class="mono">01</span>Welcome</figcaption></figure>
+            <figure><div class="phone"><img src="assets/signup-level.webp" alt="Sign up with dance level dropdown" loading="lazy"></div><figcaption><span class="mono">02</span>Level: beginner to professional, plus injury history</figcaption></figure>
+            <figure><div class="phone"><img src="assets/signin.webp" alt="Sign in screen" loading="lazy"></div><figcaption><span class="mono">03</span>Sign in, or continue with Google, Facebook or Twitter</figcaption></figure>
+            <figure><div class="phone"><img src="assets/home.webp" alt="Home screen" loading="lazy"></div><figcaption><span class="mono">04</span>Modular home: continue, history, streak</figcaption></figure>
+          </div>
+        </div>
+
+        <div class="ghost" id="ghost">
+          <div class="phone"><img id="ghost-img" src="assets/ghost-both.webp" alt="Dance Ghost: standard and previous overlays" loading="lazy"></div>
+          <div>
+            <span class="label">Signature feature</span>
+            <h3>Dance Ghost</h3>
+            <p style="margin-top:12px; max-width:52ch;">Professional dancers told us they don't want to stop mid-routine to check a video. Dance Ghost keeps practice uninterrupted, then replays it with overlays so they can correct themselves. Try the layers:</p>
+            <div class="seg" role="group" aria-label="Dance Ghost layers">
+              <button type="button" data-ghost="none" aria-pressed="false"><span class="dot n"></span>You only</button>
+              <button type="button" data-ghost="standard" aria-pressed="false"><span class="dot c"></span>Standard</button>
+              <button type="button" data-ghost="previous" aria-pressed="false"><span class="dot b"></span>Previous you</button>
+              <button type="button" data-ghost="both" aria-pressed="true"><span class="dot cb"></span>Both</button>
+            </div>
+            <p class="state" id="ghost-state" aria-live="polite">Both layers: see the target and your progress since last time at once.</p>
+          </div>
+        </div>
+
+        <div class="tvrow">
+          <div class="tv"><img src="assets/tv-learn.webp" alt="TV mode: learning view with the instructor and the user side by side" loading="lazy"></div>
+          <div class="tv"><img src="assets/tv-practice.webp" alt="TV mode: practice view with the user next to a silhouette" loading="lazy"></div>
+          <div class="prose"><span class="label">TV mode</span><p>A phone screen is small when you're two metres away. One tap casts the lesson to a TV, with the instructor and your camera side by side.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2:00 TESTING -->
+  <section class="seq" id="testing">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">2:00</span>
+        <div>
+          <h2>Usability testing</h2>
+          <p class="sub">We tested the Figma prototype with target users, combining observation with questionnaires. Every interviewee found the app easy to understand, and the testing also exposed three gaps.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="method">
+          <span class="tag">Figma interactive prototype</span>
+          <span class="tag">Observation</span>
+          <span class="tag">Post-test questionnaire</span>
+          <span class="tag">Target users: learners &amp; dancers</span>
+        </div>
+        <div class="verdicts">
+          <div class="verdict">
+            <h3><span class="dot b" aria-hidden="true"></span>What worked</h3>
+            <div class="item"><h4>Clear, familiar interface</h4><q>“It looks similar to other apps I've used, and everything is clear and precise.”</q><p>Consistency and minimalism lowered the effort of learning the app.</p></div>
+            <div class="item"><h4>Modular home screen</h4><q>“I think the main interface already contains all the functions I want.”</q><p>Users found each feature straight from home, without searching.</p></div>
+            <div class="item"><h4>Studio-like learning flow</h4><q>“The learning mode almost mimics an offline teaching environment, and Dance Ghost is very innovative and helpful for my dancing.”</q><p>Breaking moves into sequences and speeding them up translated studio teaching into the app.</p></div>
+          </div>
+          <div class="verdict">
+            <h3><span class="dot c" aria-hidden="true"></span>What needed work</h3>
+            <div class="item"><h4>Not enough control</h4><p>Users wanted to set their own speed, number of repetitions and how videos are split into sequences.</p></div>
+            <div class="item"><h4>Feedback lacked depth</h4><p>AI corrections were immediate but not professional enough. Users still wanted expert guidance.</p></div>
+            <div class="item"><h4>Learning alone feels isolating</h4><q>“I would like to add community features to interact with other dancers.”</q><p>This matched what teachers and parents said in the rich picture. The app was too focused on solo practice.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2:30 MY ITERATION -->
+  <section class="seq" id="next">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">2:30</span>
+        <div>
+          <h2>Iteration: bringing the studio back</h2>
+          <p class="sub">The two biggest gaps, social connection and professional guidance, both exist offline. So instead of more in-app features, I designed a bridge to real classes and events.</p>
+        </div>
+      </div>
+      <div class="body">
+        <span class="mine">INDIVIDUAL CONTRIBUTION · YUE WANG</span>
+        <div class="prose">
+          <p>I reframed the problem using Dorst's frame innovation: <strong>suspend judgement</strong> about what a dance app “should” be, and <strong>attack the context</strong> instead of the symptom. The root cause wasn't a missing chat feature. Nothing connected online practice with offline dance communities.</p>
+        </div>
+        <div class="iter">
+          <figure><div class="shot"><img src="assets/offline-map.webp" alt="Offline Dance map with event pins, a layout switch icon and a Studio/Event toggle" loading="lazy"></div><figcaption class="label">Offline Dance · map view</figcaption></figure>
+          <figure><div class="shot"><img src="assets/offline-event.webp" alt="Event detail card for a public dance battle with Practice and Join buttons" loading="lazy"></div><figcaption class="label">Event detail</figcaption></figure>
+          <figure><div class="shot"><img src="assets/ai-suggest.webp" alt="AI suggestions with rings for skill level, fitness data and movement accuracy, and recommended studios" loading="lazy"></div><figcaption class="label">AI studio suggestions</figcaption></figure>
+          <div class="why">
+            <div><h3>Offline Dance map</h3><p>A new module on the home screen shows nearby studios and events by distance. A layout switch lets users toggle between map and list.</p></div>
+            <div><h3>Event detail → Practice or Join</h3><p>Each event links back to the app. Users can practise the choreography first, then join in person.</p></div>
+            <div><h3>AI suggestions for the undecided</h3><p>For users anxious about picking a studio, the app recommends classes from their skill level, movement accuracy, fitness data and location.</p></div>
+          </div>
+        </div>
+        <div class="two" style="margin-top:40px;">
+          <div class="prose"><span class="label">Why it matters</span><p>The app moves from a solo learning tool to a platform that <strong>connects online and offline</strong>. It answers the social and professional-guidance gaps from testing directly.</p></div>
+          <div class="prose"><span class="label">Who else benefits</span><p>Teachers reach new students, parents find suitable classes for their children, and creators get a new way to promote their courses. The stakeholders who saw the app as a threat now have a reason to support it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3:00 REFLECTION -->
+  <section class="seq" id="reflection">
+    <div class="wrap">
+      <div class="seq-head">
+        <span class="tc">3:00</span>
+        <div>
+          <h2>Reflection</h2>
+          <p class="sub">What I'd keep, and what I'd do differently on a real product team.</p>
+        </div>
+      </div>
+      <div class="body">
+        <div class="learned">
+          <article><h3>Usability is the product</h3><p>The most-praised moments weren't the AI. They were the familiar layout and the one-task-per-screen flow. Clarity is what made a complex technology feel approachable.</p></article>
+          <article><h3>Map every stakeholder, early</h3><p>The rich picture predicted the “too isolated” feedback before testing. The people who never open the app still shape whether it succeeds.</p></article>
+          <article><h3>Test hands-on, in context</h3><p>Some participants watched a demo instead of using it, and devices differed. Next time I'd run every session hands-on, on the same device, in a real practice space.</p></article>
+        </div>
+        <div class="next">
+          <span class="label">If this shipped, I'd measure</span>
+          <ul>
+            <li>Accuracy change on the same sequence across sessions: does feedback actually improve form?</li>
+            <li>Completion rate from Learn → Last Try → Practice: where do people drop off?</li>
+            <li>Offline Dance conversions (event views → Join), to validate the online-to-offline bridge.</li>
+            <li>Customisation usage (speed, repetitions), to size the demand found in testing.</li>
+          </ul>
+        </div>
+        <div class="refs">
+          <span class="label">References</span>
+          <span>Bhutada, N. &amp; Pawar, P. (2022) Prevalence of Injuries and Risk Factors in Dancers. IJSR.</span>
+          <span>Cross, N. (2006) Designerly Ways of Knowing. Springer.</span>
+          <span>Dorst, K. (2015) Frame Innovation: Create New Thinking by Design. MIT Press.</span>
+          <span>Nielsen, J. (2024) 10 Usability Heuristics for User Interface Design. Nielsen Norman Group.</span>
+          <span>Valkenburg, R. &amp; Dorst, K. (1998) The reflective practice of design teams. Design Studies, 19(3).</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="end">
+  <div class="wrap">
+    <div>
+      <h2>Thanks for watching.</h2>
+      <p>Yue Wang · UX / Product Designer · University of Melbourne. Open to UX, UI and product design roles.</p>
+    </div>
+    <a class="toTop" href="#overview">↑ Back to start</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // Tabs
+  document.querySelectorAll('[data-tabs]').forEach(function (list) {
+    var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    function select(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { select(t); });
+      t.addEventListener('keydown', function (e) {
+        var n = null;
+        if (e.key === 'ArrowRight') n = tabs[(i + 1) % tabs.length];
+        if (e.key === 'ArrowLeft') n = tabs[(i - 1 + tabs.length) % tabs.length];
+        if (n) { e.preventDefault(); select(n, true); }
+      });
+    });
+  });
+
+  // Dance Ghost layers
+  var copy = {
+    none: ['assets/ghost-none.webp', 'Your recording alone, with the correction ring on the joint that is off.'],
+    standard: ['assets/ghost-standard.webp', 'Standard layer: the target pose in coral, laid over your body.'],
+    previous: ['assets/ghost-previous.webp', 'Previous-you layer: your last attempt in blue, to see what changed.'],
+    both: ['assets/ghost-both.webp', 'Both layers: see the target and your progress since last time at once.']
+  };
+  ['ghost-none', 'ghost-standard', 'ghost-previous'].forEach(function (n) { var i = new Image(); i.src = 'assets/' + n + '.webp'; });
+  var img = document.getElementById('ghost-img'), state = document.getElementById('ghost-state');
+  document.querySelectorAll('[data-ghost]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var k = b.getAttribute('data-ghost');
+      document.querySelectorAll('[data-ghost]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      img.src = copy[k][0]; state.textContent = copy[k][1];
+    });
+  });
+})();
+</script>
