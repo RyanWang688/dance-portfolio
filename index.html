@@ -172,16 +172,13 @@ figcaption { margin-top: 10px; }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 /* before / after */
-.ba { display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 210px) minmax(0, 1fr); gap: 28px; align-items: start; }
-.ba .col { display: grid; gap: 12px; justify-items: start; }
-.ba .col .phone { width: 100%; }
-.ba .wf .phone { background: #B9BDC7; }
+.ba { display: grid; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); gap: 48px; align-items: center; }
 .ba .changes { display: grid; gap: 14px; align-content: start; }
 .ba .changes h3 { font-size: 24px; font-weight: 800; font-stretch: 106%; }
 .ba ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
 .ba li { position: relative; padding-left: 28px; font-size: 16px; }
 .ba li::before { content: "→"; position: absolute; left: 0; top: 0; color: var(--coral); font-weight: 700; }
-@media (max-width: 860px) { .ba { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .ba .changes { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .ba { grid-template-columns: minmax(0, 1fr); gap: 28px; } .ba .compare { width: min(100%, 280px); margin: 0 auto; } }
 
 /* flows */
 .strip { display: flex; gap: 18px; overflow-x: auto; padding: 4px 4px 18px; scroll-snap-type: x proximity; }
@@ -241,6 +238,99 @@ figcaption { margin-top: 10px; }
 .next li { font-size: 16px; }
 .refs { margin-top: 48px; display: grid; gap: 6px; font-size: 13.5px; color: var(--muted); max-width: 90ch; }
 
+/* ================= motion & interaction ================= */
+:root { --ease: cubic-bezier(.2, .8, .2, 1); --ease-in-out: cubic-bezier(.65, 0, .35, 1); }
+
+/* reading progress: one segment per section, like the app's sequence bar */
+.bar { position: sticky; }
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; display: flex; gap: 3px; }
+.progress span { flex: 1; background: transparent; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 100%; background: var(--blue); transform-origin: left; transform: scaleX(0); }
+.nav a.active { color: var(--ink); background: var(--chip); }
+
+/* press feedback on every control */
+button { -webkit-tap-highlight-color: transparent; }
+.tabs button, .seg button, .ic, .steps button { transition: transform .18s var(--ease), background-color .2s, border-color .2s, color .2s; }
+.tabs button:active, .seg button:active, .ic:active, .steps button:active { transform: scale(.96); }
+
+/* tab panel entrance */
+.panel-in { animation: panelIn .45s var(--ease) both; }
+@keyframes panelIn { from { opacity: 0; transform: translateY(10px); } }
+
+/* wireframe ↔ final compare */
+.compare { position: relative; display: grid; gap: 12px; }
+.cmp { position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 430 / 932; background: #fff; }
+.cmp img { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; object-fit: cover; object-position: top; }
+.cmp img.b { clip-path: inset(0 0 0 var(--pos)); }
+.divider { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); pointer-events: none; }
+.knob { position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.28); display: grid; place-items: center; transition: transform .2s var(--ease); }
+.knob::before { content: "‹ ›"; font: 700 14px/1 var(--body); color: #14151B; letter-spacing: 2px; }
+.cmp-range { position: absolute; left: 6px; right: 6px; top: 6px; height: calc(100% - 50px); margin: 0; opacity: 0; cursor: ew-resize; touch-action: pan-y; }
+.compare:hover .knob, .cmp-range:focus-visible ~ .phone .knob { transform: scale(1.12); }
+.compare:has(.cmp-range:focus-visible) .phone { outline: 2px solid var(--blue); outline-offset: 4px; }
+.cmp-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.cmp-labels span:last-child { color: var(--ink); }
+
+/* prototype player */
+.player { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 56px; align-items: start; }
+@media (max-width: 760px) { .player { grid-template-columns: minmax(0, 1fr); gap: 28px; } .p-device { width: min(100%, 290px); margin: 0 auto; } }
+.p-device { display: grid; gap: 14px; }
+.screen { all: unset; display: block; position: relative; width: 100%; aspect-ratio: 430 / 932; border-radius: 24px; overflow: hidden; background: #fff; cursor: pointer; }
+.screen:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+.screen img { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; object-fit: cover; object-position: top; will-change: transform; }
+.screen img.in  { animation: pushIn .48s var(--ease) both; z-index: 2; }
+.screen img.out { animation: pushOut .48s var(--ease) both; z-index: 1; }
+.screen.rev img.in  { animation-name: popIn; z-index: 1; }
+.screen.rev img.out { animation-name: popOut; z-index: 2; }
+@keyframes pushIn { from { transform: translateX(100%); box-shadow: -12px 0 24px rgba(0,0,0,.18); } to { transform: none; box-shadow: -12px 0 24px rgba(0,0,0,0); } }
+@keyframes pushOut { to { transform: translateX(-28%); filter: brightness(.75); } }
+@keyframes popIn { from { transform: translateX(-28%); filter: brightness(.75); } }
+@keyframes popOut { to { transform: translateX(100%); } }
+.segs { display: flex; gap: 4px; height: 4px; }
+.segs span { flex: 1; border-radius: 2px; background: var(--line); overflow: hidden; }
+.segs i { display: block; height: 100%; width: 100%; background: var(--blue); transform-origin: left; transform: scaleX(0); }
+.segs span.done i { transform: scaleX(1); }
+.segs span.now i { transform: scaleX(1); }
+.player.playing .segs span.now i { transform: scaleX(0); animation: fill var(--dur, 2800ms) linear forwards; }
+@keyframes fill { to { transform: scaleX(1); } }
+.pctl { display: flex; align-items: center; gap: 8px; }
+.ic { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 18px/1 var(--body); cursor: pointer; display: grid; place-items: center; }
+.ic:hover { border-color: var(--muted); }
+.ic.play { width: 48px; height: 48px; background: var(--ink); color: var(--paper); border-color: var(--ink); font-size: 13px; }
+.ic.play .i-pause, .player.playing .ic.play .i-play { display: none; }
+.player.playing .ic.play .i-pause { display: inline; }
+.count { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hint { text-align: center; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: s; }
+.steps button { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 12px; padding: 12px 14px; border-radius: 12px; cursor: pointer; }
+.steps button:hover { background: var(--chip); }
+.steps button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.steps .n { grid-row: span 2; font-family: var(--mono); font-size: 12.5px; color: var(--muted); padding-top: 3px; }
+.steps .t { font-weight: 600; font-size: 16px; }
+.steps .d { font-size: 14.5px; color: var(--muted); display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s var(--ease); }
+.steps .d > span { overflow: hidden; }
+.steps li.now button { background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; }
+.steps li.now .n { color: var(--blue); }
+.steps li.now .d { grid-template-rows: 1fr; }
+.steps li.seen .n { color: var(--ink); }
+
+/* Dance Ghost crossfade */
+.gstack { position: relative; aspect-ratio: 430 / 936; border-radius: 24px; overflow: hidden; background: #fff; }
+.gstack img { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; object-fit: cover; object-position: top; opacity: 0; transition: opacity .45s var(--ease-in-out); }
+.gstack img.on { opacity: 1; }
+.ghost .state { transition: color .2s; }
+
+/* hero: one orchestrated entrance; content is in place at rest */
+@media (prefers-reduced-motion: no-preference) {
+  .stage { animation: rise .9s var(--ease) both; }
+  @keyframes rise { from { transform: translateY(28px); } }
+  .stage .phone { transition: transform .5s var(--ease); }
+  .stage:hover .phone:nth-child(1) { transform: translate(8%, 30px) rotate(-8deg); }
+  .stage:hover .phone:nth-child(3) { transform: translate(-8%, 30px) rotate(8deg); }
+  .tldr > div, .stake article, .verdict .item { transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
+  .stake article:hover, .verdict .item:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -18px rgba(10,14,30,.35); }
+}
+
 footer.end { border-top: 1px solid var(--line); padding-block: 56px 72px; }
 footer.end .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px; align-items: end; }
 footer.end h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 900; font-style: italic; font-stretch: 115%; }
@@ -261,6 +351,7 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
       <a href="#reflection">Reflection</a>
     </nav>
   </div>
+  <div class="progress" id="progress" aria-hidden="true"></div>
 </header>
 
 <main>
@@ -404,8 +495,15 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
         </div>
 
         <div class="ba" role="tabpanel" id="ba-p1" aria-labelledby="ba-t1">
-          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-step-result.webp" alt="Wireframe: step result with a single red line marking the wrong joint" loading="lazy"></div></div>
-          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/ghost-both.webp" alt="Final: analysis with standard and previous body overlays and a correction message" loading="lazy"></div></div>
+          <div class="compare" style="--pos:50%">
+            <div class="phone"><div class="cmp">
+              <img class="a" src="assets/wf-step-result.webp" alt="Wireframe: step result with a single red line marking the wrong joint" loading="lazy">
+              <img class="b" src="assets/ghost-both.webp" alt="Final: analysis with standard and previous body overlays and a correction message" loading="lazy">
+              <div class="divider" aria-hidden="true"><span class="knob"></span></div>
+            </div></div>
+            <input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare wireframe and final: step analysis">
+            <div class="cmp-labels"><span>Wireframe</span><span>Final</span></div>
+          </div>
           <div class="changes">
             <h3>A red line became a ghost</h3>
             <ul>
@@ -417,8 +515,15 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
           </div>
         </div>
         <div class="ba" role="tabpanel" id="ba-p2" aria-labelledby="ba-t2" hidden>
-          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-step-trial.webp" alt="Wireframe: step trial with text tips overlaid on a photo" loading="lazy"></div></div>
-          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/step-tips.webp" alt="Final: Nataraja Pose step with Overview and Tips tabs and a Start Learn button" loading="lazy"></div></div>
+          <div class="compare" style="--pos:50%">
+            <div class="phone"><div class="cmp">
+              <img class="a" src="assets/wf-step-trial.webp" alt="Wireframe: step trial with text tips overlaid on a photo" loading="lazy">
+              <img class="b" src="assets/step-tips.webp" alt="Final: Nataraja Pose step with Overview and Tips tabs and a Start Learn button" loading="lazy">
+              <div class="divider" aria-hidden="true"><span class="knob"></span></div>
+            </div></div>
+            <input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare wireframe and final: step tutorial">
+            <div class="cmp-labels"><span>Wireframe</span><span>Final</span></div>
+          </div>
           <div class="changes">
             <h3>Tips moved off the dancer</h3>
             <ul>
@@ -429,8 +534,15 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
           </div>
         </div>
         <div class="ba" role="tabpanel" id="ba-p3" aria-labelledby="ba-t3" hidden>
-          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-result.webp" alt="Wireframe: result page with 83% score, badges and part-by-part analysis" loading="lazy"></div></div>
-          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/practice-result.webp" alt="Final: practice result with 83% score, two badges, a video replay and Continue to Analysis" loading="lazy"></div></div>
+          <div class="compare" style="--pos:50%">
+            <div class="phone"><div class="cmp">
+              <img class="a" src="assets/wf-result.webp" alt="Wireframe: result page with 83% score, badges and part-by-part analysis" loading="lazy">
+              <img class="b" src="assets/practice-result.webp" alt="Final: practice result with 83% score, two badges, a video replay and Continue to Analysis" loading="lazy">
+              <div class="divider" aria-hidden="true"><span class="knob"></span></div>
+            </div></div>
+            <input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare wireframe and final: practice result">
+            <div class="cmp-labels"><span>Wireframe</span><span>Final</span></div>
+          </div>
           <div class="changes">
             <h3>Celebrate first, analyse second</h3>
             <ul>
@@ -441,8 +553,15 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
           </div>
         </div>
         <div class="ba" role="tabpanel" id="ba-p4" aria-labelledby="ba-t4" hidden>
-          <div class="col wf"><span class="label">Wireframe</span><div class="phone"><img src="assets/wf-next-step.webp" alt="Wireframe: dance page with hashtags and separate Learn and Practice buttons" loading="lazy"></div></div>
-          <div class="col"><span class="label">Final</span><div class="phone"><img src="assets/tutorial.webp" alt="Final: Bharatanatyam detail with rating, learners, duration, difficulty and View Choreography" loading="lazy"></div></div>
+          <div class="compare" style="--pos:50%">
+            <div class="phone"><div class="cmp">
+              <img class="a" src="assets/wf-next-step.webp" alt="Wireframe: dance page with hashtags and separate Learn and Practice buttons" loading="lazy">
+              <img class="b" src="assets/tutorial.webp" alt="Final: Bharatanatyam detail with rating, learners, duration, difficulty and View Choreography" loading="lazy">
+              <div class="divider" aria-hidden="true"><span class="knob"></span></div>
+            </div></div>
+            <input class="cmp-range" type="range" min="0" max="100" value="50" aria-label="Drag to compare wireframe and final: dance detail">
+            <div class="cmp-labels"><span>Wireframe</span><span>Final</span></div>
+          </div>
           <div class="changes">
             <h3>Answer “is this for me?” first</h3>
             <ul>
@@ -467,57 +586,42 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
         </div>
       </div>
       <div class="body">
-        <div class="tabs" role="tablist" aria-label="User flows" data-tabs="flow">
-          <button role="tab" id="fl-t1" aria-selected="true" aria-controls="fl-p1">Learn</button>
-          <button role="tab" id="fl-t2" aria-selected="false" aria-controls="fl-p2" tabindex="-1">Practise</button>
-          <button role="tab" id="fl-t3" aria-selected="false" aria-controls="fl-p3" tabindex="-1">Upload any dance</button>
-          <button role="tab" id="fl-t4" aria-selected="false" aria-controls="fl-p4" tabindex="-1">Onboarding</button>
+        <div class="tabs" role="tablist" aria-label="User flows" id="flow-tabs">
+          <button role="tab" aria-selected="true" aria-controls="player" data-flow="learn">Learn</button>
+          <button role="tab" aria-selected="false" aria-controls="player" data-flow="practise" tabindex="-1">Practise</button>
+          <button role="tab" aria-selected="false" aria-controls="player" data-flow="upload" tabindex="-1">Upload any dance</button>
+          <button role="tab" aria-selected="false" aria-controls="player" data-flow="onboard" tabindex="-1">Onboarding</button>
         </div>
 
-        <div role="tabpanel" id="fl-p1" aria-labelledby="fl-t1">
-          <p class="flow-note">Modelled on a studio lesson: understand the pose, break the routine into sequences, learn each one slowly, then put it together at full speed.</p>
-          <div class="strip">
-            <figure><div class="phone"><img src="assets/tutorial.webp" alt="Dance detail page" loading="lazy"></div><figcaption><span class="mono">01</span>Pick a dance, see difficulty and duration</figcaption></figure>
-            <figure><div class="phone"><img src="assets/step-overview.webp" alt="Step overview with cultural background" loading="lazy"></div><figcaption><span class="mono">02</span>Understand the pose and its meaning</figcaption></figure>
-            <figure><div class="phone"><img src="assets/sequence-hiphop.webp" alt="Sequence list with five timed sequences" loading="lazy"></div><figcaption><span class="mono">03</span>Routine split into timed sequences</figcaption></figure>
-            <figure><div class="phone"><img src="assets/learn-slow.webp" alt="Learn screen at 0.5x speed" loading="lazy"></div><figcaption><span class="mono">04</span>Learn each sequence at 0.5×</figcaption></figure>
-            <figure><div class="phone"><img src="assets/try-again.webp" alt="Try Again prompt" loading="lazy"></div><figcaption><span class="mono">05</span>Repeat until it sticks</figcaption></figure>
-            <figure><div class="phone"><img src="assets/last-try.webp" alt="Last Try at 1.0x speed" loading="lazy"></div><figcaption><span class="mono">06</span>Last Try at full speed</figcaption></figure>
-            <figure><div class="phone"><img src="assets/feedback.webp" alt="Real-time feedback screen" loading="lazy"></div><figcaption><span class="mono">07</span>Live correction on the exact joint</figcaption></figure>
-            <figure><div class="phone"><img src="assets/learn-result.webp" alt="Learning result summary" loading="lazy"></div><figcaption><span class="mono">08</span>Summary: accuracy per sequence</figcaption></figure>
+        <div class="player" id="player" role="tabpanel" aria-label="Interactive prototype">
+          <div class="p-device">
+            <div class="phone">
+              <button type="button" class="screen" id="p-screen" aria-label="Next screen">
+                <img class="cur" src="assets/tutorial.webp" alt="Dance detail page">
+              </button>
+            </div>
+            <div class="segs" id="p-segs" aria-hidden="true"></div>
+            <div class="pctl">
+              <button type="button" class="ic" id="p-prev" aria-label="Previous screen">‹</button>
+              <button type="button" class="ic play" id="p-play" aria-label="Play walkthrough" aria-pressed="false"><span class="i-play">▶</span><span class="i-pause">❚❚</span></button>
+              <button type="button" class="ic" id="p-next" aria-label="Next screen">›</button>
+              <span class="mono count" id="p-count">01 / 09</span>
+            </div>
+            <p class="label hint">Tap the screen to step through</p>
           </div>
-        </div>
-        <div role="tabpanel" id="fl-p2" aria-labelledby="fl-t2" hidden>
-          <p class="flow-note">Practice runs the routine without stopping. A small reference video sits in the corner, and all analysis waits until the end.</p>
-          <div class="strip">
-            <figure><div class="phone"><img src="assets/practice.webp" alt="Practice screen with reference video" loading="lazy"></div><figcaption><span class="mono">01</span>Dance with a reference in the corner</figcaption></figure>
-            <figure><div class="phone"><img src="assets/practice-3.webp" alt="Practice at step 3 of 5" loading="lazy"></div><figcaption><span class="mono">02</span>Progress shown as 3/5, nothing else</figcaption></figure>
-            <figure><div class="phone"><img src="assets/exit-confirm.webp" alt="Exit confirmation dialog" loading="lazy"></div><figcaption><span class="mono">03</span>Confirm before losing a session</figcaption></figure>
-            <figure><div class="phone"><img src="assets/practice-result.webp" alt="Practice result" loading="lazy"></div><figcaption><span class="mono">04</span>Score and badges</figcaption></figure>
-            <figure><div class="phone"><img src="assets/ghost-both.webp" alt="Dance Ghost analysis" loading="lazy"></div><figcaption><span class="mono">05</span>Dance Ghost analysis</figcaption></figure>
-          </div>
-        </div>
-        <div role="tabpanel" id="fl-p3" aria-labelledby="fl-t3" hidden>
-          <p class="flow-note">Users aren't limited to our library. Paste a link or pick a video, and the app breaks it into sequences, which turns any creator's content into a lesson.</p>
-          <div class="strip">
-            <figure><div class="phone"><img src="assets/upload-pick.webp" alt="Upload page with video picker" loading="lazy"></div><figcaption><span class="mono">01</span>Pick a video or paste a link</figcaption></figure>
-            <figure><div class="phone"><img src="assets/uploading.webp" alt="Uploading progress" loading="lazy"></div><figcaption><span class="mono">02</span>Upload with clear progress</figcaption></figure>
-            <figure><div class="phone"><img src="assets/upload-done.webp" alt="Upload done" loading="lazy"></div><figcaption><span class="mono">03</span>Done, ready to break down</figcaption></figure>
-            <figure><div class="phone"><img src="assets/sequence-bharat.webp" alt="Sequence list for Bharatanatyam with seven steps" loading="lazy"></div><figcaption><span class="mono">04</span>Auto-split into named steps</figcaption></figure>
-          </div>
-        </div>
-        <div role="tabpanel" id="fl-p4" aria-labelledby="fl-t4" hidden>
-          <p class="flow-note">Sign-up asks two questions that shape coaching from day one: dance level, and any previous injuries.</p>
-          <div class="strip">
-            <figure><div class="phone"><img src="assets/landing.webp" alt="Landing screen with D.A.N.C.E. logo" loading="lazy"></div><figcaption><span class="mono">01</span>Welcome</figcaption></figure>
-            <figure><div class="phone"><img src="assets/signup-level.webp" alt="Sign up with dance level dropdown" loading="lazy"></div><figcaption><span class="mono">02</span>Level: beginner to professional, plus injury history</figcaption></figure>
-            <figure><div class="phone"><img src="assets/signin.webp" alt="Sign in screen" loading="lazy"></div><figcaption><span class="mono">03</span>Sign in, or continue with Google, Facebook or Twitter</figcaption></figure>
-            <figure><div class="phone"><img src="assets/home.webp" alt="Home screen" loading="lazy"></div><figcaption><span class="mono">04</span>Modular home: continue, history, streak</figcaption></figure>
+          <div class="p-info">
+            <p class="flow-note" id="p-note">Modelled on a studio lesson: understand the pose, break the routine into sequences, learn each one slowly, then put it together at full speed.</p>
+            <ol class="steps" id="p-steps"></ol>
           </div>
         </div>
 
         <div class="ghost" id="ghost">
-          <div class="phone"><img id="ghost-img" src="assets/ghost-both.webp" alt="Dance Ghost: standard and previous overlays" loading="lazy"></div>
+          <div class="phone"><div class="gstack" id="ghost-stack">
+            <img data-layer="none" src="assets/ghost-none.webp" alt="Dance Ghost off: the user's recording with a correction ring" loading="lazy">
+            <img data-layer="standard" src="assets/ghost-standard.webp" alt="Dance Ghost: standard pose overlay in coral" loading="lazy">
+            <img data-layer="previous" src="assets/ghost-previous.webp" alt="Dance Ghost: previous attempt overlay in blue" loading="lazy">
+            <img data-layer="both" class="on" src="assets/ghost-both.webp" alt="Dance Ghost: standard and previous overlays together" loading="lazy">
+          </div></div>
           <div>
             <span class="label">Signature feature</span>
             <h3>Dance Ghost</h3>
@@ -659,6 +763,10 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
 
 <script>
 (function () {
+  var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
   // Tabs
   document.querySelectorAll('[data-tabs]').forEach(function (list) {
     var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
@@ -667,7 +775,9 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
         var on = t === tab;
         t.setAttribute('aria-selected', on ? 'true' : 'false');
         t.tabIndex = on ? 0 : -1;
-        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+        var p = document.getElementById(t.getAttribute('aria-controls'));
+        p.hidden = !on;
+        if (on && !REDUCED) { p.classList.remove('panel-in'); void p.offsetWidth; p.classList.add('panel-in'); }
       });
       if (focus) tab.focus();
     }
@@ -682,21 +792,236 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
     });
   });
 
-  // Dance Ghost layers
-  var copy = {
-    none: ['assets/ghost-none.webp', 'Your recording alone, with the correction ring on the joint that is off.'],
-    standard: ['assets/ghost-standard.webp', 'Standard layer: the target pose in coral, laid over your body.'],
-    previous: ['assets/ghost-previous.webp', 'Previous-you layer: your last attempt in blue, to see what changed.'],
-    both: ['assets/ghost-both.webp', 'Both layers: see the target and your progress since last time at once.']
+  // ---------- Wireframe ↔ final compare ----------
+  var compares = Array.prototype.slice.call(document.querySelectorAll('.compare'));
+  compares.forEach(function (c) {
+    var r = c.querySelector('.cmp-range');
+    function set(v) { c.style.setProperty('--pos', v + '%'); }
+    r.addEventListener('input', function () { c.dataset.touched = '1'; set(r.value); });
+  });
+  // One affordance hint per comparison the first time it is seen: the handle sweeps to reveal both sides.
+  function sweep(c) {
+    if (REDUCED || c.dataset.touched || c.dataset.hinted) return;
+    c.dataset.hinted = '1';
+    var r = c.querySelector('.cmp-range'), keys = [[0, 50], [450, 22], [1100, 78], [1700, 50]], t0 = null;
+    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function frame(ts) {
+      if (c.dataset.touched) return;
+      if (t0 === null) t0 = ts;
+      var t = ts - t0, v = 50;
+      for (var i = 1; i < keys.length; i++) {
+        if (t <= keys[i][0]) { var a = keys[i - 1], b = keys[i], k = ease((t - a[0]) / (b[0] - a[0])); v = a[1] + (b[1] - a[1]) * k; break; }
+      }
+      c.style.setProperty('--pos', v + '%'); r.value = Math.round(v);
+      if (t < keys[keys.length - 1][0]) requestAnimationFrame(frame);
+    }
+    setTimeout(function () { requestAnimationFrame(frame); }, 250);
+  }
+  if ('IntersectionObserver' in window) {
+    var cio = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting && e.target.offsetParent !== null) sweep(e.target); });
+    }, { threshold: 0.6 });
+    compares.forEach(function (c) { cio.observe(c); });
+    // panels revealed by a tab click get their own hint
+    document.querySelectorAll('[data-tabs="ba"] [role="tab"]').forEach(function (t) {
+      t.addEventListener('click', function () {
+        var c = $(t.getAttribute('aria-controls')).querySelector('.compare');
+        if (c) setTimeout(function () { sweep(c); }, 200);
+      });
+    });
+  }
+
+  // ---------- Prototype player ----------
+  var FLOWS = {
+    learn: {
+      note: 'Modelled on a studio lesson: understand the pose, break the routine into sequences, learn each one slowly, then put it together at full speed.',
+      steps: [
+        ['tutorial', 'Choose a dance', 'Rating, learners, duration and difficulty answer “is this my level?” before anything else.'],
+        ['step-overview', 'Understand the pose', 'The Overview tells the story behind the Nataraja pose. Context makes a movement easier to remember.'],
+        ['step-tips', 'Read the body cues', 'Tips are written as body instructions and kept off the photo, so the pose stays visible.'],
+        ['sequence-hiphop', 'See the routine as sequences', 'Timecodes and 1/5 counters set expectations, like counting in a studio.'],
+        ['learn-slow', 'Learn at 0.5×', 'Slow first. The speed badge stays on screen so users always know the tempo.'],
+        ['try-again', 'Repeat until it sticks', 'Large motion text is readable from two metres away, mid-move.'],
+        ['last-try', 'Last Try at 1.0×', 'Tempo only rises after the slow pass, the way teachers build a routine up.'],
+        ['feedback', 'Live correction', 'One tip and one ring on the exact joint: enough to fix the move, not enough to distract.'],
+        ['learn-result', 'Session summary', 'Accuracy per sequence shows exactly which part to revisit.']
+      ]
+    },
+    practise: {
+      note: 'Practice runs the routine without stopping. A small reference sits in the corner, and all analysis waits until the end.',
+      steps: [
+        ['practice', 'Dance uninterrupted', 'A picture-in-picture reference replaces on-screen tips while practising.'],
+        ['practice-3', 'Minimal progress', 'Only the step counter and pause control. Nothing competes with the body.'],
+        ['exit-confirm', 'Protect the session', 'Leaving asks for confirmation, so a stray tap never discards a full run.'],
+        ['practice-result', 'Celebrate first', 'Score, change since last time and badges. Analysis is one tap away.'],
+        ['ghost-both', 'Analyse with Dance Ghost', 'Standard and previous overlays, plus timeline markers for every mistake.']
+      ]
+    },
+    upload: {
+      note: 'Users aren’t limited to our library. Pick a video or paste a link, and the app turns any creator’s content into a lesson.',
+      steps: [
+        ['upload-pick', 'Bring any dance', 'Pick from the camera roll or paste a link from social media.'],
+        ['uploading', 'Upload with clear progress', 'Speed, size and file type are visible, so waiting never feels stuck.'],
+        ['upload-done', 'Ready', 'The motion text echoes the learning screens to confirm the upload finished.'],
+        ['sequence-bharat', 'Auto-split into steps', 'The video becomes named steps with durations and a difficulty scale.']
+      ]
+    },
+    onboard: {
+      note: 'Sign-up asks two questions that shape coaching from day one: dance level, and any previous injuries.',
+      steps: [
+        ['landing', 'Welcome', 'The logo is a dancer mid-move, drawn in the app’s two Ghost colours.'],
+        ['signup-level', 'Level and injury history', 'Beginner to professional, plus past injuries. Health and safety is part of setup.'],
+        ['signin', 'Sign in', 'Phone or email, or continue with Google, Facebook or Twitter.'],
+        ['home', 'Modular home', 'Continue last dance, practice history and a 40-day streak, each one tap away.']
+      ]
+    }
   };
-  ['ghost-none', 'ghost-standard', 'ghost-previous'].forEach(function (n) { var i = new Image(); i.src = 'assets/' + n + '.webp'; });
-  var img = document.getElementById('ghost-img'), state = document.getElementById('ghost-state');
+  var player = $('player'), screen = $('p-screen'), segs = $('p-segs'), stepsEl = $('p-steps'),
+      count = $('p-count'), note = $('p-note'), playBtn = $('p-play');
+  var flow = 'learn', idx = 0, timer = null, DUR = 2800, busy = false;
+
+  Object.keys(FLOWS).forEach(function (k) { FLOWS[k].steps.forEach(function (s) { var i = new Image(); i.src = 'assets/' + s[0] + '.webp'; }); });
+
+  function render() {
+    var st = FLOWS[flow].steps;
+    note.textContent = FLOWS[flow].note;
+    segs.innerHTML = st.map(function () { return '<span><i></i></span>'; }).join('');
+    stepsEl.innerHTML = st.map(function (s, i) {
+      return '<li><button type="button" data-i="' + i + '"><span class="n">' + pad(i + 1) + '</span><span class="t">' + s[1] + '</span><span class="d"><span>' + s[2] + '</span></span></button></li>';
+    }).join('');
+    stepsEl.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () { stop(); go(+b.dataset.i); });
+    });
+  }
+  function mark() {
+    var st = FLOWS[flow].steps;
+    Array.prototype.forEach.call(segs.children, function (s, i) {
+      s.className = i < idx ? 'done' : (i === idx ? 'now' : '');
+      if (i === idx) { var n = s.firstChild; s.replaceChild(n.cloneNode(), n); } // restart fill animation
+    });
+    Array.prototype.forEach.call(stepsEl.children, function (li, i) {
+      li.className = i === idx ? 'now' : (i < idx ? 'seen' : '');
+    });
+    count.textContent = pad(idx + 1) + ' / ' + pad(st.length);
+    screen.setAttribute('aria-label', 'Screen ' + (idx + 1) + ' of ' + st.length + ': ' + st[idx][1] + '. Activate for next screen.');
+  }
+  function go(n, dir) {
+    var st = FLOWS[flow].steps;
+    n = (n + st.length) % st.length;
+    if (n === idx && screen.querySelector('img.cur').dataset.k === st[n][0]) { mark(); return; }
+    var back = dir === undefined ? n < idx : dir < 0;
+    idx = n;
+    var cur = screen.querySelector('img.cur');
+    var next = new Image();
+    next.src = 'assets/' + st[n][0] + '.webp';
+    next.alt = st[n][1];
+    next.dataset.k = st[n][0];
+    if (REDUCED || !cur) {
+      if (cur) cur.remove();
+      next.className = 'cur'; screen.appendChild(next);
+    } else {
+      screen.querySelectorAll('img:not(.cur)').forEach(function (x) { x.remove(); });
+      screen.classList.toggle('rev', back);
+      cur.className = 'out';
+      next.className = 'cur in';
+      screen.appendChild(next);
+      setTimeout(function () { cur.remove(); next.classList.remove('in'); }, 500);
+    }
+    mark();
+  }
+  function setFlow(k) {
+    flow = k; idx = -1; render();
+    var st = FLOWS[flow].steps, cur = screen.querySelector('img.cur');
+    idx = 0;
+    if (cur) { cur.src = 'assets/' + st[0][0] + '.webp'; cur.alt = st[0][1]; cur.dataset.k = st[0][0]; }
+    if (!REDUCED) { player.classList.remove('panel-in'); void player.offsetWidth; player.classList.add('panel-in'); }
+    mark();
+    if (timer) { clearInterval(timer); timer = setInterval(tick, DUR); }
+  }
+  function tick() { go(idx + 1, 1); }
+  function play() {
+    if (timer) return;
+    player.style.setProperty('--dur', DUR + 'ms');
+    player.classList.add('playing'); playBtn.setAttribute('aria-pressed', 'true'); playBtn.setAttribute('aria-label', 'Pause walkthrough');
+    mark();
+    timer = setInterval(tick, DUR);
+  }
+  function stop() {
+    clearInterval(timer); timer = null;
+    player.classList.remove('playing'); playBtn.setAttribute('aria-pressed', 'false'); playBtn.setAttribute('aria-label', 'Play walkthrough');
+  }
+  screen.querySelector('img.cur').dataset.k = 'tutorial';
+  render(); mark();
+  screen.addEventListener('click', function () { stop(); go(idx + 1, 1); });
+  $('p-next').addEventListener('click', function () { stop(); go(idx + 1, 1); });
+  $('p-prev').addEventListener('click', function () { stop(); go(idx - 1, -1); });
+  playBtn.addEventListener('click', function () { timer ? stop() : play(); });
+  player.addEventListener('keydown', function (e) {
+    if (e.target.closest('.steps')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); stop(); go(idx + 1, 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); go(idx - 1, -1); }
+  });
+  var ftabs = Array.prototype.slice.call(document.querySelectorAll('#flow-tabs [role="tab"]'));
+  function pickFlow(t, focus) {
+    ftabs.forEach(function (x) { var on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1; });
+    if (focus) t.focus();
+    setFlow(t.dataset.flow);
+  }
+  ftabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { pickFlow(t); });
+    t.addEventListener('keydown', function (e) {
+      var n = e.key === 'ArrowRight' ? ftabs[(i + 1) % ftabs.length] : e.key === 'ArrowLeft' ? ftabs[(i - 1 + ftabs.length) % ftabs.length] : null;
+      if (n) { e.preventDefault(); pickFlow(n, true); }
+    });
+  });
+  // Autoplay once when the player first comes into view; any interaction hands control to the viewer.
+  if (!REDUCED && 'IntersectionObserver' in window) {
+    var started = false;
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting && !started) { started = true; play(); }
+        if (!e.isIntersecting && timer) stop();
+      });
+    }, { threshold: 0.55 }).observe(player);
+  }
+
+  // ---------- Dance Ghost crossfade ----------
+  var copy = {
+    none: 'Your recording alone, with the correction ring on the joint that is off.',
+    standard: 'Standard layer: the target pose in coral, laid over your body.',
+    previous: 'Previous-you layer: your last attempt in blue, to see what changed.',
+    both: 'Both layers: see the target and your progress since last time at once.'
+  };
+  var state = $('ghost-state'), layers = $('ghost-stack').querySelectorAll('img');
   document.querySelectorAll('[data-ghost]').forEach(function (b) {
     b.addEventListener('click', function () {
       var k = b.getAttribute('data-ghost');
       document.querySelectorAll('[data-ghost]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-      img.src = copy[k][0]; state.textContent = copy[k][1];
+      Array.prototype.forEach.call(layers, function (im) { im.classList.toggle('on', im.dataset.layer === k); });
+      state.textContent = copy[k];
     });
   });
+
+  // ---------- Reading progress + scrollspy ----------
+  var ids = ['overview', 'research', 'principles', 'iteration', 'experience', 'testing', 'next', 'reflection'];
+  var secs = ids.map($), bar = $('progress');
+  bar.innerHTML = ids.map(function () { return '<span><i></i></span>'; }).join('');
+  var fills = bar.querySelectorAll('i'), links = {};
+  document.querySelectorAll('.nav a').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+  var ticking = false;
+  function onScroll() {
+    ticking = false;
+    var y = window.scrollY + 80, active = null;
+    secs.forEach(function (s, i) {
+      var top = s.offsetTop, h = s.offsetHeight;
+      var f = Math.max(0, Math.min(1, (y - top) / h));
+      fills[i].style.transform = 'scaleX(' + f + ')';
+      if (y >= top && y < top + h) active = ids[i];
+    });
+    Object.keys(links).forEach(function (k) { links[k].classList.toggle('active', k === active); });
+  }
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
 })();
 </script>
