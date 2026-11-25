@@ -65,8 +65,17 @@ p { margin: 0; }
 /* ---------- top bar ---------- */
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 56px; }
-.who { font-weight: 600; font-size: 15px; white-space: nowrap; }
-.who span { color: var(--muted); font-weight: 400; }
+.who { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 600; font-size: 15px; white-space: nowrap; border-radius: 8px; }
+.who .name span { color: var(--muted); font-weight: 400; }
+.logo { width: 22px; height: 29px; flex: none; overflow: visible; }
+.logo .arms { stroke: var(--blue); }
+.logo .body { stroke: var(--ink); }
+.logo .head { fill: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .logo .arms, .logo .head { transform-box: view-box; transform-origin: 186px 140px; transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
+  .who:hover .logo .arms { transform: translateY(-14px) scaleX(1.06); }
+  .who:hover .logo .head { transform: translateY(-10px); }
+}
 .nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
 .nav::-webkit-scrollbar { display: none; }
 .nav a { text-decoration: none; font-size: 14px; color: var(--muted); padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
@@ -343,7 +352,16 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
 
 <header class="bar">
   <div class="wrap">
-    <div class="who">Yue Wang <span>· UX / Product Design</span></div>
+    <a class="who" href="#top" aria-label="D.A.N.C.E. case study by Yue Wang, back to top">
+      <svg class="logo" viewBox="88 50 240 320" aria-hidden="true" focusable="false">
+        <g transform="translate(47 52)" fill="none" stroke-width="30">
+          <path class="arms" d="M57 0 C57 80 90 113 136 113 C182 113 216 80 217 0"/>
+          <path class="body" d="M58 300 C90 175 150 125 262 101" stroke-linecap="round"/>
+        </g>
+        <circle class="head" cx="186" cy="98" r="25"/>
+      </svg>
+      <span class="name">Yue Wang <span>· UX / Product Design</span></span>
+    </a>
     <nav class="nav" aria-label="Case study sections">
       <a href="#overview">Overview</a>
       <a href="#research">Research</a>
@@ -357,7 +375,7 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
   <div class="progress" id="progress" aria-hidden="true"></div>
 </header>
 
-<main>
+<main id="top">
   <section class="hero">
     <div class="wrap">
       <div>
