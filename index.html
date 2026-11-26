@@ -96,9 +96,13 @@ p { margin: 0; }
   overflow: hidden; isolation: isolate;
   display: flex; align-items: flex-end; padding-block: 120px 64px;
 }
-/* proportional full-bleed: the film fills the stage; scrolling pushes in and dims it a touch, like a camera dolly */
-.cover-video { position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; background: #0A0B10;
-  transform: scale(calc(1.02 + var(--s) * .07)); filter: brightness(calc(1 - var(--s) * .22)) saturate(1.05); transform-origin: 50% 46%; will-change: transform; }
+/* The film always shows its whole frame (contain); a blurred copy of the same film fills whatever
+   the window's shape leaves over, so the screen reads as full-bleed at any aspect ratio.
+   Scrolling pushes in and dims a touch, like a camera dolly. */
+.cover-ambient { position: absolute; inset: -8%; z-index: -4; width: 116%; height: 116%; object-fit: cover; pointer-events: none;
+  filter: blur(42px) brightness(.5) saturate(1.25); transform: translateZ(0); }
+.cover-video { position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%; object-fit: contain; object-position: 50% 50%;
+  transform: scale(calc(1 + var(--s) * .05)); filter: brightness(calc(1 - var(--s) * .22)) saturate(1.05); transform-origin: 50% 46%; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .cover-video { transform: none; } }
 /* always-on cinematic edge: soft vignette that melts the frame into the page */
 .cover-stage::after { content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
@@ -124,7 +128,7 @@ p { margin: 0; }
   /* phone: the whole 16:9 frame across the top, text on solid ink beneath it */
   .cover-stage { height: auto; min-height: calc(100svh - 57px - env(safe-area-inset-top, 0px)); padding-top: calc(4vh + 56.25vw + 28px); align-items: flex-start; }
   .cover-video { inset: 4vh 0 auto 0; height: auto; aspect-ratio: 16 / 9; transform: none; }
-  .cover-shade, .cover-stage::after { display: none; }
+  .cover-shade, .cover-stage::after, .cover-ambient { display: none; }
   .scroll-cue { bottom: auto; top: calc(4vh + 56.25vw + 40px); }
 }
 .cover-sound { position: absolute; z-index: 1; top: 20px; right: max(16px, env(safe-area-inset-right, 0px)); display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(242,244,248,.22); background: rgba(10,11,16,.45); color: #F2F4F8; font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); opacity: .8; transition: opacity .2s, background-color .2s, transform .2s var(--ease); }
@@ -416,6 +420,9 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
 <main id="top">
   <section class="hero cover" id="cover">
     <div class="cover-stage">
+      <video class="cover-ambient" id="reel-bg" muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1">
+        <source src="media/dance-15s-720.mp4" type="video/mp4">
+      </video>
       <video class="cover-video" id="reel" autoplay muted loop playsinline preload="auto" poster="media/dance-poster.jpg" aria-hidden="true" tabindex="-1">
         <source src="media/dance-15s-720.mp4" type="video/mp4" media="(max-width: 760px)">
         <source src="media/dance-15s.mp4" type="video/mp4">
@@ -1077,6 +1084,16 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
       if (on && !heard) { heard = true; v.currentTime = 0; }
       if (v.paused) v.play().catch(function () {});
     });
+    // the blurred ambient layer follows the main film (only where it is shown: wider than a phone)
+    var bg = $('reel-bg');
+    if (bg && matchMedia('(min-width: 761px)').matches) {
+      bg.muted = true;
+      v.addEventListener('play', function () { bg.play().catch(function () {}); });
+      v.addEventListener('pause', function () { bg.pause(); });
+      v.addEventListener('seeked', function () { bg.currentTime = v.currentTime; });
+      v.addEventListener('timeupdate', function () { if (Math.abs(bg.currentTime - v.currentTime) > .2 && bg.readyState > 1) bg.currentTime = v.currentTime; });
+      if (!v.paused) bg.play().catch(function () {});
+    } else if (bg) { bg.removeAttribute('preload'); bg.querySelector('source').remove(); bg.load(); }
     // start the film the moment the page opens (muted autoplay), and again whenever the tab comes back
     function kick() { if (v.paused && cover.getBoundingClientRect().bottom > 0) v.play().catch(function () {}); }
     v.muted = true; kick();
