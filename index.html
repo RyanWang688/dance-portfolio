@@ -82,33 +82,45 @@ p { margin: 0; }
 .nav a:hover { color: var(--ink); background: var(--chip); }
 @media (max-width: 760px) { .nav { display: none; } }
 
-/* ---------- hero: the film is the cover ---------- */
+/* ---------- hero: the film is the cover ----------
+   The section is taller than the screen; its stage is pinned, so the film plays full-bleed first
+   and the title rises in as the visitor scrolls (--t1 title, --t2 details, --s shade, --cue scroll hint). */
 .cover {
-  /* the cover is always a dark stage, so it carries its own light tokens in both themes */
   --ink: #F2F4F8; --muted: rgba(242, 244, 248, .72); --chip: rgba(242, 244, 248, .14); --line: rgba(242, 244, 248, .2);
-  position: relative; isolation: isolate; overflow: hidden; background: #0A0B10; color: var(--ink);
-  min-height: clamp(620px, calc(100svh - 57px), 1000px);
-  display: flex; align-items: flex-end; padding-block: 140px 64px;
+  --t1: 1; --t2: 1; --s: 1; --cue: 0;
+  position: relative; height: 210svh; background: #0A0B10; color: var(--ink); overflow: clip;
 }
-.cover-video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; }
-.cover-shade { position: absolute; inset: 0; z-index: -1; pointer-events: none;
+.cover-stage {
+  position: sticky; top: calc(57px + env(safe-area-inset-top, 0px));
+  height: calc(100svh - 57px - env(safe-area-inset-top, 0px)); min-height: 560px;
+  overflow: hidden; isolation: isolate;
+  display: flex; align-items: flex-end; padding-block: 120px 64px;
+}
+/* contain, never crop: the film's ground is the same ink as the cover, so spare space is invisible */
+.cover-video { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: contain; object-position: 50% 50%; background: #0A0B10; }
+.cover-shade { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--s);
   background:
     linear-gradient(to top, rgba(10,11,16,.96) 0%, rgba(10,11,16,.78) 26%, rgba(10,11,16,.25) 55%, rgba(10,11,16,0) 75%),
-    linear-gradient(to right, rgba(10,11,16,.7) 0%, rgba(10,11,16,.2) 45%, rgba(10,11,16,0) 70%),
-    linear-gradient(to bottom, rgba(10,11,16,.55) 0%, rgba(10,11,16,0) 18%);
+    linear-gradient(to right, rgba(10,11,16,.7) 0%, rgba(10,11,16,.2) 45%, rgba(10,11,16,0) 70%);
 }
 .cover .wrap { position: relative; width: 100%; display: grid; gap: 28px; }
 .cover .ghosted { font-size: clamp(56px, 11vw, 150px); text-shadow: 0 10px 40px rgba(0,0,0,.35); }
-.cover .tag { backdrop-filter: blur(6px); }
+.cover .rise1, .cover .rise2 { will-change: opacity, transform, filter; }
+.cover .rise1 { opacity: var(--t1); transform: translateY(calc((1 - var(--t1)) * 48px)); filter: blur(calc((1 - var(--t1)) * 12px)); }
+.cover .rise2 { opacity: var(--t2); transform: translateY(calc((1 - var(--t2)) * 32px)); filter: blur(calc((1 - var(--t2)) * 8px)); }
+@media (prefers-reduced-motion: reduce) { .cover .rise1, .cover .rise2 { transform: none; filter: none; } }
 .hero-sub { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: end; }
 .hero-sub .lede, .hero-sub .meta { margin-top: 0; }
-@media (max-width: 860px) { .hero-sub { grid-template-columns: minmax(0, 1fr); gap: 24px; } .cover { padding-block: 120px 40px; } }
+.scroll-cue { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: grid; justify-items: center; gap: 10px; opacity: var(--cue); pointer-events: none; font: 500 11px/1 var(--mono); letter-spacing: .24em; text-transform: uppercase; color: rgba(242,244,248,.75); }
+.scroll-cue i { width: 1px; height: 44px; background: linear-gradient(rgba(242,244,248,.8), rgba(242,244,248,0)); transform-origin: top; }
+@media (prefers-reduced-motion: no-preference) { .scroll-cue i { animation: cue 1.8s cubic-bezier(.65,0,.35,1) infinite; } @keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } } }
+@media (max-width: 860px) { .hero-sub { grid-template-columns: minmax(0, 1fr); gap: 24px; } .cover-stage { padding-block: 120px 40px; } }
 @media (max-width: 760px) {
-  .cover { padding-top: 46vh; }
-  .cover-video { height: 58%; object-position: 50% 40%; }
-  .cover-shade { background:
-    linear-gradient(to top, #0A0B10 0%, #0A0B10 44%, rgba(10,11,16,.6) 54%, rgba(10,11,16,0) 68%),
-    linear-gradient(to bottom, rgba(10,11,16,.5) 0%, rgba(10,11,16,0) 14%); }
+  /* phone: the whole 16:9 frame across the top, text on solid ink beneath it */
+  .cover-stage { height: auto; min-height: calc(100svh - 57px - env(safe-area-inset-top, 0px)); padding-top: calc(4vh + 56.25vw + 28px); align-items: flex-start; }
+  .cover-video { inset: 4vh 0 auto 0; height: auto; aspect-ratio: 16 / 9; }
+  .cover-shade { display: none; }
+  .scroll-cue { bottom: auto; top: calc(4vh + 56.25vw + 40px); }
 }
 .cover-sound { position: absolute; z-index: 1; top: 20px; right: max(16px, env(safe-area-inset-right, 0px)); display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(242,244,248,.22); background: rgba(10,11,16,.45); color: #F2F4F8; font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); opacity: .8; transition: opacity .2s, background-color .2s, transform .2s var(--ease); }
 .cover-sound:hover { opacity: 1; background: rgba(10,11,16,.7); }
@@ -118,7 +130,6 @@ p { margin: 0; }
 .spk::before { content: ""; position: absolute; left: 0; top: 2px; width: 8px; height: 8px; background: currentColor; clip-path: polygon(0 25%, 40% 25%, 100% 0, 100% 100%, 40% 75%, 0 75%); }
 .spk::after { content: ""; position: absolute; right: 0; top: 1px; width: 4px; height: 9px; border: 2px solid currentColor; border-left: 0; border-radius: 0 9px 9px 0; }
 .cover:not(.has-sound) .spk::after { border: 0; width: 8px; height: 2px; top: 5px; right: -3px; background: currentColor; transform: rotate(45deg); border-radius: 1px; }
-.kicker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
 .tag { font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--chip); color: var(--ink); }
 .ghosted { position: relative; font-style: italic; font-weight: 900; font-stretch: 118%; font-size: clamp(52px, 9.5vw, 112px); letter-spacing: -.01em; line-height: .95; }
 .ghosted .g { position: absolute; inset: 0; pointer-events: none; }
@@ -361,8 +372,6 @@ button { -webkit-tap-highlight-color: transparent; }
 
 /* hero: one orchestrated entrance; content is in place at rest */
 @media (prefers-reduced-motion: no-preference) {
-  .cover .wrap { animation: rise 1s var(--ease) both; }
-  @keyframes rise { from { transform: translateY(24px); } }
   .tldr > div, .stake article, .verdict .item { transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
   .stake article:hover, .verdict .item:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -18px rgba(10,14,30,.35); }
 }
@@ -401,35 +410,33 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
 
 <main id="top">
   <section class="hero cover" id="cover">
-    <video class="cover-video" id="reel" autoplay muted loop playsinline preload="auto" poster="media/dance-poster.jpg" aria-hidden="true" tabindex="-1">
-      <source src="media/dance-15s-720.mp4" type="video/mp4" media="(max-width: 760px)">
-      <source src="media/dance-15s.mp4" type="video/mp4">
-    </video>
-    <div class="cover-shade" aria-hidden="true"></div>
-    <button type="button" class="cover-sound" id="cover-sound" aria-pressed="false"><span class="spk" aria-hidden="true"></span><span id="cover-sound-label">Sound off</span></button>
-    <div class="wrap">
-      <div>
-        <div class="kicker">
-          <span class="tag">Mobile app · iOS</span>
-          <span class="tag">AI motion capture</span>
-          <span class="tag">0 → 1 concept</span>
+    <div class="cover-stage">
+      <video class="cover-video" id="reel" autoplay muted loop playsinline preload="auto" poster="media/dance-poster.jpg" aria-hidden="true" tabindex="-1">
+        <source src="media/dance-15s-720.mp4" type="video/mp4" media="(max-width: 760px)">
+        <source src="media/dance-15s.mp4" type="video/mp4">
+      </video>
+      <div class="cover-shade" aria-hidden="true"></div>
+      <button type="button" class="cover-sound" id="cover-sound" aria-pressed="false"><span class="spk" aria-hidden="true"></span><span id="cover-sound-label">Sound off</span></button>
+      <div class="wrap">
+        <div class="rise1">
+          <h1 class="ghosted" aria-label="D.A.N.C.E.">
+            <span class="g g1" aria-hidden="true">D.A.N.C.E.</span>
+            <span class="g g2" aria-hidden="true">D.A.N.C.E.</span>
+            <span class="solid">D.A.N.C.E.</span>
+          </h1>
+          <p class="expand"><b>D</b>ance · <b>A</b>nd · <b>N</b>uanced · <b>C</b>oaching · <b>E</b>xpert</p>
         </div>
-        <h1 class="ghosted" aria-label="D.A.N.C.E.">
-          <span class="g g1" aria-hidden="true">D.A.N.C.E.</span>
-          <span class="g g2" aria-hidden="true">D.A.N.C.E.</span>
-          <span class="solid">D.A.N.C.E.</span>
-        </h1>
-        <p class="expand"><b>D</b>ance · <b>A</b>nd · <b>N</b>uanced · <b>C</b>oaching · <b>E</b>xpert</p>
+        <div class="hero-sub rise2">
+          <p class="lede">A dance coach in your pocket. It breaks any choreography into short sequences, watches you through the camera, and corrects your form in real time.</p>
+          <dl class="meta">
+            <div><dt class="label">Role</dt><dd>UX/UI designer: research, wireframes, hi-fi prototype, user testing</dd></div>
+            <div><dt class="label">Context</dt><dd>Team project · INFO30008, University of Melbourne</dd></div>
+            <div><dt class="label">Timeline</dt><dd>Semester 2, 2024 (Aug – Nov)</dd></div>
+            <div><dt class="label">Tools</dt><dd>Figma, interviews, rich picture, usability testing</dd></div>
+          </dl>
+        </div>
       </div>
-      <div class="hero-sub">
-        <p class="lede">A dance coach in your pocket. It breaks any choreography into short sequences, watches you through the camera, and corrects your form in real time.</p>
-        <dl class="meta">
-          <div><dt class="label">Role</dt><dd>UX/UI designer: research, wireframes, hi-fi prototype, user testing</dd></div>
-          <div><dt class="label">Context</dt><dd>Team project · INFO30008, University of Melbourne</dd></div>
-          <div><dt class="label">Timeline</dt><dd>Semester 2, 2024 (Aug – Nov)</dd></div>
-          <div><dt class="label">Tools</dt><dd>Figma, interviews, rich picture, usability testing</dd></div>
-        </dl>
-      </div>
+      <div class="scroll-cue" aria-hidden="true">Scroll<i></i></div>
     </div>
   </section>
 
@@ -1058,7 +1065,6 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
       v.muted = !on; cover.classList.toggle('has-sound', on);
       btn.setAttribute('aria-pressed', on); label.textContent = on ? 'Sound on' : 'Sound off';
     }
-    // first time sound is turned on, restart from the count-in so the score is heard whole
     var heard = false;
     btn.addEventListener('click', function () {
       var on = v.muted;
@@ -1066,12 +1072,33 @@ footer.end p { color: var(--muted); margin-top: 10px; max-width: 48ch; }
       if (on && !heard) { heard = true; v.currentTime = 0; }
       if (v.paused) v.play().catch(function () {});
     });
-    if (REDUCED) { v.removeAttribute('autoplay'); v.pause(); }
-    else if ('IntersectionObserver' in window) {
+    // start the film the moment the page opens (muted autoplay), and again whenever the tab comes back
+    function kick() { if (v.paused && cover.getBoundingClientRect().bottom > 0) v.play().catch(function () {}); }
+    v.muted = true; kick();
+    v.addEventListener('loadeddata', kick);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) kick(); });
+    if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (!e.isIntersecting && !v.paused) v.pause(); else if (e.isIntersecting && v.paused) v.play().catch(function () {}); });
-      }, { threshold: 0.15 }).observe(cover);
+        es.forEach(function (e) { if (!e.isIntersecting && !v.paused) v.pause(); else if (e.isIntersecting) kick(); });
+      }, { threshold: 0.05 }).observe(cover);
     }
+
+    // scroll-linked reveal: the title rises out of the film as the visitor scrolls
+    var ss = function (a, b, x) { var t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    var queued = false;
+    function reveal() {
+      queued = false;
+      var r = cover.getBoundingClientRect(), stage = cover.firstElementChild.getBoundingClientRect();
+      var run = Math.max(1, r.height - stage.height);
+      var p = Math.max(0, Math.min(1, -r.top / run));
+      cover.style.setProperty('--s', ss(0, .35, p).toFixed(3));
+      cover.style.setProperty('--t1', ss(.06, .42, p).toFixed(3));
+      cover.style.setProperty('--t2', ss(.3, .7, p).toFixed(3));
+      cover.style.setProperty('--cue', (1 - ss(0, .1, p)).toFixed(3));
+    }
+    window.addEventListener('scroll', function () { if (!queued) { queued = true; requestAnimationFrame(reveal); } }, { passive: true });
+    window.addEventListener('resize', reveal);
+    reveal();
   })();
 
   // ---------- Reading progress + scrollspy ----------

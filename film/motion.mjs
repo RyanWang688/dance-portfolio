@@ -307,8 +307,9 @@ function frame(ctx, f) {
   ctx.globalAlpha = 1; ctx.drawImage(vignette, 0, 0);
   ctx.globalAlpha = .055; ctx.drawImage(grains[f % 4], -(f * 37 % 40), -(f * 53 % 40), W + 80, H + 80);
   ctx.globalAlpha = 1;
-  // loop fade
-  const fo = inv(29.3, 30, b); if (fo > 0) { ctx.fillStyle = `rgba(10,11,16,${E.inOutCubic(fo)})`; ctx.fillRect(0, 0, W, H); }
+  // loop: rise out of ink at the start, dissolve back into ink at the end
+  const fi = 1 - inv(0, .7, b); if (fi > 0) { ctx.fillStyle = `rgba(10,11,16,${E.inOutCubic(fi)})`; ctx.fillRect(0, 0, W, H); }
+  const fo = inv(28.4, 30, b); if (fo > 0) { ctx.fillStyle = `rgba(10,11,16,${E.inOutCubic(fo)})`; ctx.fillRect(0, 0, W, H); }
 }
 const flash = (b, at, peak) => b >= at && b < at + .2 ? peak * (1 - (b - at) / .2) : 0;
 
@@ -520,6 +521,9 @@ function acronym(ctx, f, b) {
 
 // ---- 13:00–15:00  the skeleton becomes the logo ----
 function ending(ctx, f, b, t) {
+  // slow push-in so the end card keeps breathing while it dissolves
+  const push = 1 + .045 * E.inOutCubic(inv(26.5, 30, b));
+  ctx.translate(960, 540); ctx.scale(push, push); ctx.translate(-960, -540);
   const c = baseCam(b, { yaw: 0, pitch: .05, R: 4.0, ty: 1.05, cy: 560 });
   const m = E.inOutCubic(inv(26.45, 27.45, b));
   const J = fk(poseAt(tauOf(b)));
@@ -553,16 +557,16 @@ function ending(ctx, f, b, t) {
   if (m > .5) { ctx.globalAlpha = 1; ctx.fill(); } else ctx.stroke();
   ctx.restore();
   // wordmark
-  const wa = inv(27.4, 27.8, b);
-  if (wa > 0) ghostText(ctx, 'D.A.N.C.E.', 960, 820, 150, 48 * (1 - E.outCubic(inv(27.4, 28.2, b))), { alpha: wa });
-  const sa = inv(28.0, 28.4, b);
+  const wa = E.inOutCubic(inv(27.2, 27.7, b));
+  if (wa > 0) ghostText(ctx, 'D.A.N.C.E.', 960, 820, 150, 48 * (1 - E.outCubic(inv(27.2, 28.0, b))), { alpha: wa });
+  const sa = E.inOutCubic(inv(27.6, 28.0, b));
   if (sa > 0) {
     const s1 = 'DANCE AND NUANCED COACHING EXPERT';
     ctx.save(); ctx.globalAlpha = sa; ctx.font = '26px JB'; ctx.fillStyle = PAPER; ctx.textAlign = 'center';
-    const n = Math.ceil(s1.length * inv(28.0, 28.7, b));
+    const n = Math.ceil(s1.length * inv(27.6, 28.2, b));
     ctx.fillText(s1.slice(0, n).split('').join(' '), 960, 925); ctx.restore();
   }
-  const ta = inv(28.6, 29, b);
+  const ta = E.inOutCubic(inv(27.9, 28.3, b));
   if (ta > 0) { ctx.save(); ctx.globalAlpha = ta; mono(ctx, 'UX / UI CASE STUDY   ·   YUE WANG', 960, 975, 20, MUTED, 'center'); ctx.restore(); }
 }
 

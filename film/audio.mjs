@@ -144,7 +144,7 @@ for (let b = 24; b < 26; b += .25) put(bt(b), hat(), { gain: .12, pan: .3 });
 put(bt(26), kick(1.6), { gain: .9 }); put(bt(26), boom(), { gain: .45, send: .6 }); put(bt(26), crash(2.5), { gain: .3, send: .5 });
 put(bt(26), pad([45, 57, 64, 67, 71, 76], 1.9, 2200, .02, .6), { gain: .5, send: .7 });
 put(bt(27.45), bell(hz(81), 2), { gain: .22, send: .7 }); put(bt(27.5), bell(hz(88), 2), { gain: .14, pan: .4, send: .7 });
-for (let i = 0; i < 30; i++) put(bt(28.0) + i * (bt(.7) / 30), tick(), { gain: .12, pan: .2 });
+for (let i = 0; i < 30; i++) put(bt(27.6) + i * (bt(.6) / 30), tick(), { gain: .1, pan: .2 });
 
 // ---------- reverb (Freeverb-style) ----------
 function freeverb(inp, spread) {
@@ -161,7 +161,8 @@ const rvL = freeverb(VL, 0), rvR = freeverb(VR, 23);
 let peak = 0; const mL = new Float32Array(N), mR = new Float32Array(N);
 for (let i = 0; i < N; i++) {
   const t = i / SR;
-  let fade = Math.min(1, t / .01); if (t > 14.65) fade *= Math.max(0, (15 - t) / .35);
+  // gentle in, long cosine fade out that tracks the picture dissolving to ink
+  let fade = Math.min(1, t / .02); if (t > 14.2) fade *= .5 + .5 * Math.cos(Math.PI * Math.min(1, (t - 14.2) / .8));
   mL[i] = Math.tanh((L[i] + rvL[i] * 1.1) * .9) * fade; mR[i] = Math.tanh((R[i] + rvR[i] * 1.1) * .9) * fade;
   peak = Math.max(peak, Math.abs(mL[i]), Math.abs(mR[i]));
 }
